@@ -21,12 +21,12 @@ participant be as backend
 participant db as database
 
 
-fe ->> be : GET /api/v1/seat/
+fe ->> be : GET /getAllSeats
 be -->> fe : List<Seat>
 fe -->> fe : Render List<Seat>
 u ->> fe : select seats (max. 5) and Proceed
-fe ->> be : POST /api/v1/seat/book List<Seat>
-be ->> db : book seats set reserved = true
+fe ->> be : POST /bookSeats List<Integer> seatIds
+be ->> db : Isolation @SERIALIZATION book seats set reserved = true
 db -->> be : OK
 alt Error
     db -->> be : Error: [Already reserved, seat not found etc]
@@ -34,11 +34,6 @@ alt Error
     fe -->> u : Seat already reserved / Seat not found
 end
 
-be -->> fe : { blocked: true, List<Seat> }
-fe -->> fe : redirect to Payment page with List<Seat>
-u ->> fe : complete payment
-fe ->> be : { paymentCompleted: true, List<Seat> }
-be ->> db : Reserve permanently List<Seat>
 db -->> be : OK
 be -->> fe : OK
 fe -->> u : Seats reserved successfully!
@@ -56,3 +51,9 @@ SEAT {
 }
 
 ```
+
+## Deployment steps
+
+1. Create `jar` file using `./mvnw clean package`
+2. Upload that `jar` file in AWS Lambda
+3. Test it and done
